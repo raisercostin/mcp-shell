@@ -1,3 +1,14 @@
+#!/usr/bin/env -S deno run --allow-env --allow-run --allow-read
+/**
+ * mcp-shell — MCP stdio server that runs commands via an explicitly configured shell.
+ *
+ * Run directly:
+ *   deno run --allow-env --allow-run --allow-read src/shell.ts
+ *
+ * Config (optional — if omitted, call shell_list then shell_config at runtime):
+ *   MCP_SHELL_CONFIG='{"executable":"/usr/bin/bash","argsPrefix":["-c"],"shell":"bash"}'
+ *   --shell-config '{"executable":"/usr/bin/bash","argsPrefix":["-c"],"shell":"bash"}'
+ */
 import { Server } from "npm:@modelcontextprotocol/sdk@1.7.0/server/index.js";
 import { StdioServerTransport } from "npm:@modelcontextprotocol/sdk@1.7.0/server/stdio.js";
 import {
@@ -606,4 +617,27 @@ export async function startServer(initialConfig?: ShellConfig) {
   const server = createServer(initialConfig);
   const transport = new StdioServerTransport();
   await server.connect(transport);
+}
+
+// =============================================================================
+// Entry point (when run directly: deno run shell.ts)
+// =============================================================================
+
+if (import.meta.main) {
+  function _tryLoadConfig(): ShellConfig | undefined {
+    const raw = (() => {
+      const idx = Deno.args.indexOf("--shell-config");
+      return idx >= 0 ? Deno.args[idx + 1] : Deno.env.get("MCP_SHELL_CONFIG");
+    })();
+    if (!raw) return undefined;
+    try {
+      const obj = JSON.parse(raw) as Record<string, unknown>;
+      if (typeof obj.executable === "string" && Array.isArray(obj.argsPrefix)) {
+        return { executable: obj.executable, argsPrefix: obj.argsPrefix as string[], shell: (obj.shell as string) ?? "unknown" };
+      }
+    } catch { /* invalid JSON — ignore, start unconfigured */ }
+    return undefined;
+  }
+
+  await startServer(_tryLoadConfig());
 }

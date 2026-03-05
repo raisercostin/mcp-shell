@@ -2,12 +2,11 @@
 /**
  * mcp-shell — entry point
  *
- * Config (optional — if omitted, call shell_doctor then configure_shell at runtime):
+ * Config (optional — if omitted, call shell_list then shell_config at runtime):
  *   MCP_SHELL_CONFIG='{"executable":"/usr/bin/bash","argsPrefix":["-c"],"shell":"bash"}'
  *   --shell-config '{"executable":"/usr/bin/bash","argsPrefix":["-c"],"shell":"bash"}'
  */
-import { startServer } from "./server.ts";
-import { type ShellConfig } from "./executor.ts";
+import { startServer, type ShellConfig } from "./shell.ts";
 
 function tryLoadConfig(): ShellConfig | undefined {
   const raw = (() => {

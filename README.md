@@ -6,6 +6,22 @@ On Windows, agents default to `powershell.exe`. This gives you `bash`, `bashw`, 
 
 ---
 
+## Prerequisites
+
+**[Deno](https://deno.com) must be installed.** It's the only dependency — no npm, no node_modules.
+
+```bash
+# Windows (PowerShell)
+irm https://deno.land/install.ps1 | iex
+
+# macOS / Linux
+curl -fsSL https://deno.land/install.sh | sh
+```
+
+Verify: `deno --version`
+
+---
+
 ## Quick Start
 
 No config needed to start. The server guides you:

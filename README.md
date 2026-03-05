@@ -1,48 +1,35 @@
 # mcp-shell
 
-MCP server that lets AI agents run shell commands through **your chosen shell** — not whatever the runtime defaults to.
+MCP stdio server that runs commands through **your chosen shell**, not the agent's default.
 
-On Windows, agents default to `powershell.exe`. This gives you `bash`, `bashw`, `zsh`, or any other shell instead.
-
----
+Solves the Windows problem: agents default to `powershell.exe`, this gives you `bash` (bashw/MinGW64), `zsh`, or any other shell.
 
 ## Prerequisites
 
-**[Deno](https://deno.com) must be installed.** It's the only dependency — no npm, no node_modules.
+**[Deno](https://deno.com)** — the only dependency.
 
 ```bash
-# Windows (PowerShell)
-irm https://deno.land/install.ps1 | iex
-
-# macOS / Linux
-curl -fsSL https://deno.land/install.sh | sh
+irm https://deno.land/install.ps1 | iex        # Windows
+curl -fsSL https://deno.land/install.sh | sh   # macOS/Linux
 ```
 
-Verify: `deno --version`
+## Tools
 
----
+| Tool | Description |
+|------|-------------|
+| `shell_list` | List all detected shells (PATH + well-known paths) with versions |
+| `shell_config` | Set active shell by name from `shell_list` output |
+| `shell_status` | Full shell fingerprint: OS, TTY, encoding, capabilities, utilities, env |
+| `shell_run` | Run a command or multi-line script through the configured shell |
 
-## Quick Start
-
-No config needed to start. The server guides you:
-
-1. **`shell_doctor`** — discovers all shells on your machine
-2. **`shell_config`** — sets the active shell for the session
-3. **`shell_run`** — run commands through it
-4. **`shell_info`** — full shell fingerprint (OS, TTY, capabilities, utilities, env)
-
-To make the shell permanent, set `MCP_SHELL_CONFIG` in your environment (the server tells you the exact value after `configure_shell`).
-
----
+No config needed to start — call `shell_list` then `shell_config` at runtime.
+To persist, set `MCP_SHELL_CONFIG` (the value is shown after `shell_config`).
 
 ## Install
 
-No install step — Deno fetches and runs directly from GitHub.
-
 ### GitHub Copilot CLI
 
-Add to `C:\Users\<you>\.copilot\mcp-config.json`:
-
+`C:\Users\<you>\.copilot\mcp-config.json`:
 ```json
 {
   "mcpServers": {
@@ -55,18 +42,9 @@ Add to `C:\Users\<you>\.copilot\mcp-config.json`:
 }
 ```
 
-### Claude (claude CLI)
-
-```bash
-claude mcp add shell -- \
-  deno run --allow-env --allow-run --allow-read \
-  https://raw.githubusercontent.com/raisercostin/mcp-shell/main/src/main.ts
-```
-
 ### VS Code Copilot
 
-Add to `.vscode/mcp.json`:
-
+`~/.vscode/User/mcp.json` (or `.vscode/mcp.json` in project):
 ```json
 {
   "servers": {
@@ -79,9 +57,14 @@ Add to `.vscode/mcp.json`:
 }
 ```
 
-### Gemini CLI
+### Claude
 
-Add to `~/.gemini/settings.json`:
+```bash
+claude mcp add shell -- deno run --allow-env --allow-run --allow-read \
+  https://raw.githubusercontent.com/raisercostin/mcp-shell/main/src/main.ts
+```
+
+### Gemini / Codex
 
 ```json
 {
@@ -94,61 +77,16 @@ Add to `~/.gemini/settings.json`:
   }
 }
 ```
-
-### Codex CLI
-
-Add to `~/.codex/config.json`:
-
-```json
-{
-  "mcpServers": {
-    "shell": {
-      "command": "deno",
-      "args": ["run", "--allow-env", "--allow-run", "--allow-read",
-               "https://raw.githubusercontent.com/raisercostin/mcp-shell/main/src/main.ts"]
-    }
-  }
-}
-```
-
----
 
 ## Permanent Config (optional)
 
-After running `configure_shell`, set the env var it gives you so the shell is pre-selected on every restart:
-
 ```bash
-# Linux / macOS / bashw — add to .bashrc / .zshrc
 export MCP_SHELL_CONFIG='{"executable":"/usr/bin/bash","argsPrefix":["-c"],"shell":"bash"}'
-
-# Windows bashw — add to $PROFILE or agent env block
-MCP_SHELL_CONFIG={"executable":"D:/path/bashw.exe","argsPrefix":["-c"],"shell":"bash"}
+# Windows: {"executable":"D:/path/bashw.exe","argsPrefix":["-c"],"shell":"bash"}
 ```
-
-Or pass it directly:
-
-```bash
-deno run --allow-env --allow-run --allow-read src/main.ts \
-  --shell-config '{"executable":"/usr/bin/bash","argsPrefix":["-c"],"shell":"bash"}'
-```
-
----
-
-## Tools
-
-| Tool | Description |
-|------|-------------|
-| `shell_doctor` | Scan PATH + well-known paths, return all detected shells with versions |
-| `shell_config` | Set active shell by name (from doctor output). Session-scoped. |
-| `shell_info` | Full fingerprint: OS, TTY, encoding, capabilities, utilities, env snapshot |
-| `shell_run` | Run a command or multi-line script through the configured shell |
-
----
 
 ## Tests
 
 ```bash
 deno test --allow-env --allow-run --allow-read src/
 ```
-
-39 tests across executor, config, multiconfig, doctor, info suites.

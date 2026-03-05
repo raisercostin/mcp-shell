@@ -9,12 +9,12 @@ import { detectShells, formatDetectedShells } from "./doctor.ts";
 import { getShellInfo, formatShellInfo } from "./info.ts";
 
 const TOOL_SHELL_RUN      = "shell_run";
-const TOOL_SHELL_DOCTOR   = "shell_doctor";
+const TOOL_SHELL_LIST     = "shell_list";
 const TOOL_SHELL_CONFIG   = "shell_config";
-const TOOL_SHELL_INFO     = "shell_info";
+const TOOL_SHELL_STATUS   = "shell_status";
 
 const NOT_CONFIGURED =
-  "No shell configured. Call `shell_doctor` to discover available shells, " +
+  "No shell configured. Call `shell_list` to see available shells, " +
   "then call `shell_config` with the name of the shell you want to use.";
 
 function resultText(r: { exitCode: number; stdout: string; stderr: string }) {
@@ -41,11 +41,10 @@ export function createServer(initialConfig?: ShellConfig) {
   server.setRequestHandler(ListToolsRequestSchema, () => ({
     tools: [
       {
-        name: TOOL_SHELL_DOCTOR,
+        name: TOOL_SHELL_LIST,
         description:
-          "Discover all shells available on this machine (checks PATH and well-known local paths). " +
-          "Returns a list of shells with their paths and versions. " +
-          "Call configure_shell afterwards to select one.",
+          "List all shells available on this machine (checks PATH and well-known local paths). " +
+          "Returns names, paths, and versions. Pass a name to shell_config to activate one.",
         inputSchema: { type: "object", properties: {} },
       },
       {
@@ -62,7 +61,7 @@ export function createServer(initialConfig?: ShellConfig) {
         },
       },
       {
-        name: TOOL_SHELL_INFO,
+        name: TOOL_SHELL_STATUS,
         description:
           "Get comprehensive info about the configured shell: OS, version, TTY, encoding, " +
           "line endings, capabilities (heredoc, arrays, process substitution), available utilities, JVM properties, and full env snapshot. " +
@@ -88,7 +87,7 @@ export function createServer(initialConfig?: ShellConfig) {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
 
-    if (name === TOOL_SHELL_DOCTOR) {
+    if (name === TOOL_SHELL_LIST) {
       const shells = await detectShells();
       return textContent(formatDetectedShells(shells));
     }
@@ -115,7 +114,7 @@ export function createServer(initialConfig?: ShellConfig) {
       );
     }
 
-    if (name === TOOL_SHELL_INFO) {
+    if (name === TOOL_SHELL_STATUS) {
       if (!shellConfig) return textContent(NOT_CONFIGURED);
       const info = await getShellInfo(shellConfig);
       return textContent(formatShellInfo(info));

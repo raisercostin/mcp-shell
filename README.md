@@ -27,8 +27,8 @@ Verify: `deno --version`
 No config needed to start. The server guides you:
 
 1. **`shell_doctor`** — discovers all shells on your machine
-2. **`configure_shell`** — sets the active shell for the session
-3. **`run_command`** / **`run_script`** — run commands through it
+2. **`shell_config`** — sets the active shell for the session
+3. **`shell_run`** — run commands through it
 4. **`shell_info`** — full shell fingerprint (OS, TTY, capabilities, utilities, env)
 
 To make the shell permanent, set `MCP_SHELL_CONFIG` in your environment (the server tells you the exact value after `configure_shell`).
@@ -139,9 +139,9 @@ deno run --allow-env --allow-run --allow-read src/main.ts \
 | Tool | Description |
 |------|-------------|
 | `shell_doctor` | Scan PATH + well-known paths, return all detected shells with versions |
-| `configure_shell` | Set active shell by name (from doctor output). Session-scoped. |
+| `shell_config` | Set active shell by name (from doctor output). Session-scoped. |
 | `shell_info` | Full fingerprint: OS, TTY, encoding, capabilities, utilities, env snapshot |
-| `run` | Run a command or multi-line script through the configured shell |
+| `shell_run` | Run a command or multi-line script through the configured shell |
 
 ---
 

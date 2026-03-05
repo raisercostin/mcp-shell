@@ -8,14 +8,14 @@ import { runCommand, type ShellConfig } from "./executor.ts";
 import { detectShells, formatDetectedShells } from "./doctor.ts";
 import { getShellInfo, formatShellInfo } from "./info.ts";
 
-const TOOL_RUN           = "run";
+const TOOL_SHELL_RUN      = "shell_run";
 const TOOL_SHELL_DOCTOR   = "shell_doctor";
-const TOOL_CONFIGURE_SHELL = "configure_shell";
+const TOOL_SHELL_CONFIG   = "shell_config";
 const TOOL_SHELL_INFO     = "shell_info";
 
 const NOT_CONFIGURED =
   "No shell configured. Call `shell_doctor` to discover available shells, " +
-  "then call `configure_shell` with the name of the shell you want to use.";
+  "then call `shell_config` with the name of the shell you want to use.";
 
 function resultText(r: { exitCode: number; stdout: string; stderr: string }) {
   return [
@@ -49,7 +49,7 @@ export function createServer(initialConfig?: ShellConfig) {
         inputSchema: { type: "object", properties: {} },
       },
       {
-        name: TOOL_CONFIGURE_SHELL,
+        name: TOOL_SHELL_CONFIG,
         description:
           "Set the active shell for this session. Use a name returned by shell_doctor. " +
           "To make it permanent, set MCP_SHELL_CONFIG in your environment.",
@@ -70,7 +70,7 @@ export function createServer(initialConfig?: ShellConfig) {
         inputSchema: { type: "object", properties: {} },
       },
       {
-        name: TOOL_RUN,
+        name: TOOL_SHELL_RUN,
         description: shellConfig
           ? `Run a shell command or multi-line script via ${shellConfig.shell} (${shellConfig.executable}). Returns stdout, stderr, exit_code.`
           : `Run a shell command or script. ${NOT_CONFIGURED}`,
@@ -93,7 +93,7 @@ export function createServer(initialConfig?: ShellConfig) {
       return textContent(formatDetectedShells(shells));
     }
 
-    if (name === TOOL_CONFIGURE_SHELL) {
+    if (name === TOOL_SHELL_CONFIG) {
       const selectedName = (args as { name: string }).name;
       const shells = await detectShells();
       const found = shells.find((s) => s.name === selectedName);
@@ -121,7 +121,7 @@ export function createServer(initialConfig?: ShellConfig) {
       return textContent(formatShellInfo(info));
     }
 
-    if (name === TOOL_RUN) {
+    if (name === TOOL_SHELL_RUN) {
       if (!shellConfig) return textContent(NOT_CONFIGURED);
       const command = (args as { command: string }).command;
       return textContent(resultText(await runCommand(shellConfig, command)));

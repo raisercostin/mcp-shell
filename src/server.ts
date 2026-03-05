@@ -8,8 +8,7 @@ import { runCommand, type ShellConfig } from "./executor.ts";
 import { detectShells, formatDetectedShells } from "./doctor.ts";
 import { getShellInfo, formatShellInfo } from "./info.ts";
 
-const TOOL_RUN_COMMAND    = "run_command";
-const TOOL_RUN_SCRIPT     = "run_script";
+const TOOL_RUN           = "run";
 const TOOL_SHELL_DOCTOR   = "shell_doctor";
 const TOOL_CONFIGURE_SHELL = "configure_shell";
 const TOOL_SHELL_INFO     = "shell_info";
@@ -71,29 +70,16 @@ export function createServer(initialConfig?: ShellConfig) {
         inputSchema: { type: "object", properties: {} },
       },
       {
-        name: TOOL_RUN_COMMAND,
+        name: TOOL_RUN,
         description: shellConfig
-          ? `Run a shell command via ${shellConfig.shell} (${shellConfig.executable}). Returns stdout, stderr, exit_code.`
-          : `Run a shell command. ${NOT_CONFIGURED}`,
+          ? `Run a shell command or multi-line script via ${shellConfig.shell} (${shellConfig.executable}). Returns stdout, stderr, exit_code.`
+          : `Run a shell command or script. ${NOT_CONFIGURED}`,
         inputSchema: {
           type: "object",
           properties: {
-            command: { type: "string", description: "The shell command to execute" },
+            command: { type: "string", description: "The shell command or multi-line script to execute" },
           },
           required: ["command"],
-        },
-      },
-      {
-        name: TOOL_RUN_SCRIPT,
-        description: shellConfig
-          ? `Run a multi-line script via ${shellConfig.shell}. Returns stdout, stderr, exit_code.`
-          : `Run a multi-line script. ${NOT_CONFIGURED}`,
-        inputSchema: {
-          type: "object",
-          properties: {
-            script: { type: "string", description: "Multi-line script body" },
-          },
-          required: ["script"],
         },
       },
     ],
@@ -135,16 +121,10 @@ export function createServer(initialConfig?: ShellConfig) {
       return textContent(formatShellInfo(info));
     }
 
-    if (name === TOOL_RUN_COMMAND) {
+    if (name === TOOL_RUN) {
       if (!shellConfig) return textContent(NOT_CONFIGURED);
       const command = (args as { command: string }).command;
       return textContent(resultText(await runCommand(shellConfig, command)));
-    }
-
-    if (name === TOOL_RUN_SCRIPT) {
-      if (!shellConfig) return textContent(NOT_CONFIGURED);
-      const script = (args as { script: string }).script;
-      return textContent(resultText(await runCommand(shellConfig, script)));
     }
 
     throw new Error(`Unknown tool: ${name}`);

@@ -141,8 +141,7 @@ deno run --allow-env --allow-run --allow-read src/main.ts \
 | `shell_doctor` | Scan PATH + well-known paths, return all detected shells with versions |
 | `configure_shell` | Set active shell by name (from doctor output). Session-scoped. |
 | `shell_info` | Full fingerprint: OS, TTY, encoding, capabilities, utilities, env snapshot |
-| `run_command` | Run a single command through the configured shell |
-| `run_script` | Run a multi-line script through the configured shell |
+| `run` | Run a command or multi-line script through the configured shell |
 
 ---
 

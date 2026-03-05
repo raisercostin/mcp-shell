@@ -259,11 +259,7 @@ function num(v: string | undefined): number | null {
 async function fetchJvmProps(
   config: ShellConfig,
 ): Promise<Record<string, string> | null> {
-  const result = await runCommand(config, [
-    "java",
-    "-XshowSettings:property",
-    "-version",
-  ]);
+  const result = await runCommand(config, "java -XshowSettings:property -version");
   if (result.exitCode !== 0 && result.exitCode !== 1) return null;
   const combined = result.stdout + "\n" + result.stderr;
   const props: Record<string, string> = {};
@@ -283,10 +279,7 @@ export async function getShellInfo(config: ShellConfig): Promise<ShellInfo> {
   const probeScript = isBashLike ? buildBashProbe() : buildCmdProbe();
 
   // Run probe via the configured shell
-  const result = await runCommand(config, [
-    ...(config.argsPrefix ?? []),
-    probeScript,
-  ]);
+  const result = await runCommand(config, probeScript);
 
   const kv = parseKV(result.stdout + "\n" + result.stderr);
 

@@ -1,22 +1,27 @@
-#!/usr/bin/env -S deno run --allow-env --allow-run
+#!/usr/bin/env -S deno run --allow-env --allow-run --allow-read
 /**
- * MCP Shell Executor — entry point
+ * mcp-shell — entry point
  *
- * Usage:
- *   deno run --allow-env --allow-run src/main.ts
- *
- * Config (required — one of):
- *   MCP_SHELL_CONFIG='{"executable":"D:/path/bashw.exe","argsPrefix":["-c"],"shell":"bash"}'
- *   --shell-config '{"executable":"D:/path/bashw.exe","argsPrefix":["-c"],"shell":"bash"}'
- *
- * See issue 001 and practice-gemini-shell-patch.md for context.
+ * Config (optional — if omitted, call shell_doctor then configure_shell at runtime):
+ *   MCP_SHELL_CONFIG='{"executable":"/usr/bin/bash","argsPrefix":["-c"],"shell":"bash"}'
+ *   --shell-config '{"executable":"/usr/bin/bash","argsPrefix":["-c"],"shell":"bash"}'
  */
 import { startServer } from "./server.ts";
+import { type ShellConfig } from "./executor.ts";
 
-// Parse --shell-config from argv
-const shellConfigArg = (() => {
-  const idx = Deno.args.indexOf("--shell-config");
-  return idx >= 0 ? Deno.args[idx + 1] : undefined;
-})();
+function tryLoadConfig(): ShellConfig | undefined {
+  const raw = (() => {
+    const idx = Deno.args.indexOf("--shell-config");
+    return idx >= 0 ? Deno.args[idx + 1] : Deno.env.get("MCP_SHELL_CONFIG");
+  })();
+  if (!raw) return undefined;
+  try {
+    const obj = JSON.parse(raw) as Record<string, unknown>;
+    if (typeof obj.executable === "string" && Array.isArray(obj.argsPrefix)) {
+      return { executable: obj.executable, argsPrefix: obj.argsPrefix as string[], shell: (obj.shell as string) ?? "unknown" };
+    }
+  } catch { /* invalid JSON — ignore, start unconfigured */ }
+  return undefined;
+}
 
-await startServer({ shellConfig: shellConfigArg });
+await startServer(tryLoadConfig());
